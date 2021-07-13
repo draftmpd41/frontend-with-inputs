@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Delhi Draft Master Plan 2041 - Citizens Inputs</title>
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<link rel="stylesheet" href="lib/leaflet.css" />
+<link href="lib/jquery-ui.css" rel="stylesheet">
+<link href="lib/bootstrap.v4.0.0.min.css" crossorigin="anonymous" alt="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet">
+<link rel="stylesheet" href="lib/leaflet-sidebar.css" />
+<link href="lib/tabulator.min.css" rel="stylesheet">
+<link href="lib/simTree.css" rel="stylesheet">
+
+<!-- Put the CSSs first and JSs next -->
+
+<script src="lib/jquery-3.3.1.min.js" type="text/javascript"></script>
+<script src="lib/jquery-ui.min.js" type="text/javascript"></script>
+<script src="lib/leaflet.js"></script>
+<script src="lib/leaflet-sidebar.min.js"></script>
+<script src="lib/papaparse.min.js"></script>
+<script src="lib/Leaflet.Control.Custom.js"></script>
+<script src="lib/leaflet-providers.js"></script>
+<script src="lib/tabulator.min.js" type="text/javascript"></script>
+<script src="lib/leaflet-hash.min.js"></script>
+<script src="lib/simTree.js"></script>
+
+<style>
+body {
+    padding: 0;
+    margin: 0;
+    min-height: auto; /* override style.css for this page*/
+}
+
+html, body, #map {
+    height: 100%;
+}
+/*#map {
+    height: calc(100% - 56px);
+font: 10pt "Helvetica Neue", Arial, Helvetica, sans-serif;
+
+}*/
+ul.sim-tree {
+    padding-inline-start: 0px;
+}
+/*div.sidebar {
+    top: 63px;
+}*/
+
+@media (min-width: 1200px) {
+    .sidebar {
+        width: 450px;
+    }
+    .sidebar p {
+        width: 80%;
+    }
+    .sidebar-left ~ .sidebar-map .leaflet-left {
+        left: 450px;
+    }
+}
+
+.sidebar .alert {
+    width: 100%;
+}
+
+.sidebar-pane {
+    min-width: auto;
+}
+
+/* Tabulator */
+#stops {
+    width: 100%;
+}
+
+.legend { float: right; width: 20px; height: 80%; margin: 5px; }
+
+
+red {
+  color: red;
+  font-weight: bold;
+}
+</style>
+</head>
+<body>
+<div id="topMenu"></div>
+
+<div id="sidebar" class="sidebar collapsed">
+<!-- Nav tabs -->
+<div class="sidebar-tabs">
+<ul role="tablist">
+    <li><a href="#home" role="tab" onclick="tabulatorRedraw()" title="layers"><i class="fa fa-bars"></i></a></li>
+    <!-- <li><a href="#stopDetailsSection" role="tab"><i class="fa fa-map-marker"></i></a></li> -->
+    <li><a href="#submit" role="tab" title="Share your Input"><i class="fa fa-pencil"></i></a></li>
+    <li><a href="#messages" role="tab" title="Citizens Inputs"><i class="fa fa-envelope"></i></a></li>
+    <li><a href="https://github.com/draftmpd41/draftmpd41.github.io" role="tab" target="_blank" title="See the code"><i class="fa fa-github"></i></a></li>
+    
+</ul>
+<ul role="tablist">
+    <li><a href="#settings" role="tab" title="About"><i class="fa fa-info-circle"></i></a></li>
+</ul>
+</div>
+
+<!-- Tab panes -->
+<div class="sidebar-content">
+<div class="sidebar-pane" id="home">
+    <h1 class="sidebar-header">
+        Draft MPD41 Layers
+        <span class="sidebar-close"><i class="fa fa-caret-left"></i></span>
+    </h1>
+    <br>
+    <div id="tree"></div>
+    <span id="fetchInputs_status"></span><br>
+    Total inputs submitted: <span id="submittedNum"></span><br>
+    Approved: <span id="approvedNum"></span><br>
+    
+    
+</div>
+<!--
+<div class="sidebar-pane" id="stopDetailsSection">
+<h2 class="sidebar-header"><span class="stop_name">Stop Name</span>
+<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h2>
+<br>
+</div>
+-->
+
+<div class="sidebar-pane" id="submit">
+    <h1 class="sidebar-header">Share your input<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+    <br><p>Location: <span id="latlong"></span> 
+    <br><small>move map crosshair to target location</small><br>
+    Category<red>*</red> : <input id="category"><br>
+    Message<red>*</red> :<br>
+    <textarea id="message"></textarea></p>
+    <p>Your details:<br>
+    Name<red>*</red> : <input id="name"><br>
+    Email<red>*</red> : <input id="email"><br>
+    Mobile : <input id="mobile"><br>
+    <label for="declaration"><input type="checkbox" name="declaration" id="declaration"> <small><red>*</red> I hereby declare that my contact details are accurate</small></label>
+    <label for="consent"><input type="checkbox" name="consent" value="consent" id="consent" onchange=""> <small>I hereby consent to my contact details being shared by the site managers for connecting with fellow citizens etc (optional)</small></label>
+    </p>
+    <button class="btn btn-primary" id="submitButton" onclick="submitInput()">Submit</button><br>
+    <span class="submitStatus"></span><br>
+
+    <small>Notes:<br>
+    <ul>
+        <li>Your contact details won't be displayed on the map when displaying your message</li>
+        <li>Submitted inputs are subject to moderation to rule out spam</li>
+        <li>Strict no-no on all special chars including single and double quotes</li>
+    </ul></small>
+
+</div>
+
+<div class="sidebar-pane" id="messages">
+    <h1 class="sidebar-header">Citizens inputs<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+    <br>
+    <div id="displayMessage">
+        Click on a marker on the map to view the input
+    </div>
+</div>
+
+<div class="sidebar-pane" id="settings">
+<h1 class="sidebar-header">About<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+<br>
+<!-- <p>Explanation</p> -->
+<small>
+    <p>An initiative by <a href="https://github.com/rajesvariparasa" target="_blank">Rajesvari Parasa</a></p>
+    <p>Coding by <a href="https://nikhilvj.co.in" target="_blank">Nikhil VJ</a> from Kaisyn Consultancy and Training Pvt Ltd</p>
+    <br>
+    <p>Ref:<br>
+    <a href="https://twitter.com/mbd2041/status/1348156082019913729">https://twitter.com/mbd2041/status/1348156082019913729</a>
+    <a href="https://timesofindia.indiatimes.com/city/delhi/80-in-survey-say-no-clue-about-ddas-masterplan/articleshow/80193521.cms">https://timesofindia.indiatimes.com/city/delhi/80-in-survey-say-no-clue-about-ddas-masterplan/articleshow/80193521.cms</a>
+    <a href="https://igsss.org/wp-content/uploads/2020/12/Assessment-of-Peoples-Awareness-on-Delhi-Master-Plan-2021-41-1.pdf">https://igsss.org/wp-content/uploads/2020/12/Assessment-of-Peoples-Awareness-on-Delhi-Master-Plan-2021-41-1.pdf</a>
+
+</small>
+
+</p>
+
+</div>
+
+</div>
+</div>
+
+<div id="map" class="sidebar-map"></div>
+
+<script src="config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/map.js"></script>
+
+</body>
+</html>
